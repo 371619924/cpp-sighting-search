@@ -4,6 +4,9 @@
 #include <string>
 #include <sstream>
 #include <stdexcept>
+#include <chrono>
+#include <algorithm>
+
 
 class Sighting {
 public:
@@ -14,10 +17,12 @@ public:
 
     // Overload < operator for sorting
     bool operator<(const Sighting &other) const {
-        int thisSignature = static_cast<int>(brightness);
-        int otherSignature = static_cast<int>(other.brightness);
-        return thisSignature == otherSignature ? speed < other.speed : thisSignature < otherSignature;
+        if (brightness != other.brightness) {
+            return brightness < other.brightness;
+        }
+        return speed < other.speed;
     }
+
 
 
     friend std::ostream &operator<<(std::ostream &os, const Sighting &s) {
@@ -62,6 +67,34 @@ int parseSignature(const std::string &line) {
     return signature;
 }
 
+// Linear search implementation
+bool linearSearch(const std::vector<Sighting> &sightings, int signature) {
+    for (const auto &s : sightings) {
+        if (static_cast<int>(s.brightness) == signature) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Binary search implementation
+bool binarySearch(const std::vector<Sighting> &sightings, int signature) {
+    int left = 0, right = sightings.size() - 1;
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+        int midSignature = static_cast<int>(sightings[mid].brightness);
+        if (midSignature == signature) {
+            return true;
+        } else if (midSignature < signature) {
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
+    return false;
+}
+
+
 int main(int argc, char *argv[]) {
     if (argc < 3) {
         std::cerr << "Usage: " << argv[0] << " <sighting_file> <signature_file>" << std::endl;
@@ -78,16 +111,35 @@ int main(int argc, char *argv[]) {
         // Read signatures
         std::vector<int> signatures = readFile<int>(signatureFile, parseSignature);
 
-        // Debugging output
-        std::cout << "Sightings:" << std::endl;
-        for (const auto &sighting : sightings) {
-            std::cout << sighting << std::endl;
+        // Choice search
+        char choice;
+        do {
+            std::cout << "Choice of search method ([l]inear, [b]inary)? ";
+            std::cin >> choice;
+            if (choice != 'l' && choice != 'b') {
+                std::cerr << "Incorrect choice" << std::endl;
+            }
+        } while (choice != 'l' && choice != 'b');
+
+        // Sort sightings for binary search
+        if (choice == 'b') {
+            std::sort(sightings.begin(), sightings.end());
         }
 
-        std::cout << "\nSignatures:" << std::endl;
+        // Start search
+        int count = 0;
+        auto start = std::chrono::high_resolution_clock::now();
         for (const auto &signature : signatures) {
-            std::cout << signature << std::endl;
+            bool found = (choice == 'l') ? linearSearch(sightings, signature) : binarySearch(sightings, signature);
+            if (found) {
+                count++;
+            }
         }
+        auto end = std::chrono::high_resolution_clock::now();
+
+        // Output results
+        std::cout << "CPU time: " << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << " microseconds" << std::endl;
+        std::cout << "Matches found: " << count << std::endl;
     } catch (const std::exception &e) {
         std::cerr << e.what() << std::endl;
         return 1;
@@ -95,3 +147,5 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
+
+
