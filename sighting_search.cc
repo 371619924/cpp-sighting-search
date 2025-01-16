@@ -31,12 +31,34 @@ public:
     }
 };
 
+// Time part 
+class Timer {
+private:
+    std::chrono::high_resolution_clock::time_point startTime;
+
+public:
+    void Reset() {
+        startTime = std::chrono::high_resolution_clock::now();
+    }
+
+    double ElapsedMicroseconds() const {
+        auto endTime = std::chrono::high_resolution_clock::now();
+        return std::chrono::duration<double, std::micro>(endTime - startTime).count();
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const Timer &timer) {
+        os << timer.ElapsedMicroseconds() << " microseconds";
+        return os;
+    }
+};
+
+
 // Generic function to read a file and parse lines using a provided parser
 template <typename T, typename Parser>
 std::vector<T> readFile(const std::string &filename, Parser parser) {
     std::ifstream file(filename);
     if (!file.is_open()) {
-        throw std::runtime_error("Fail");
+        throw std::runtime_error("Unable to open file " + filename);
     }
 
     std::vector<T> container;
@@ -113,6 +135,8 @@ int main(int argc, char *argv[]) {
 
         // Choice search
         char choice;
+        Timer timer;
+
         do {
             std::cout << "Choice of search method ([l]inear, [b]inary)? ";
             std::cin >> choice;
@@ -126,19 +150,18 @@ int main(int argc, char *argv[]) {
             std::sort(sightings.begin(), sightings.end());
         }
 
-        // Start search
+       // Start search
         int count = 0;
-        auto start = std::chrono::high_resolution_clock::now();
+        timer.Reset();
         for (const auto &signature : signatures) {
             bool found = (choice == 'l') ? linearSearch(sightings, signature) : binarySearch(sightings, signature);
             if (found) {
                 count++;
             }
         }
-        auto end = std::chrono::high_resolution_clock::now();
 
         // Output results
-        std::cout << "CPU time: " << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << " microseconds" << std::endl;
+        std::cout << "CPU time: " << timer << std::endl;
         std::cout << "Matches found: " << count << std::endl;
     } catch (const std::exception &e) {
         std::cerr << e.what() << std::endl;
