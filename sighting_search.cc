@@ -125,6 +125,7 @@ int main(int argc, char *argv[]) {
 
     const std::string sightingFile = argv[1];
     const std::string signatureFile = argv[2];
+    const std::string resultFile = argv[3];
 
     try {
         // Read sightings
@@ -159,8 +160,16 @@ int main(int argc, char *argv[]) {
                 count++;
             }
         }
+        
+        // Output results to file
+        std::ofstream outFile(resultFile);
+        if (!outFile.is_open()) {
+            throw std::runtime_error("Unable to open file " + resultFile);
+        }
+        outFile << count;
+        outFile.close();
 
-        // Output results
+        // Print CPU time and matches to console
         std::cout << "CPU time: " << timer << std::endl;
         std::cout << "Matches found: " << count << std::endl;
     } catch (const std::exception &e) {
