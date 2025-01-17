@@ -119,7 +119,7 @@ bool binarySearch(const std::vector<Sighting> &sightings, int signature) {
 
 int main(int argc, char *argv[]) {
     if (argc < 3) {
-        std::cerr << "Usage: " << argv[0] << " <sighting_file> <signature_file>" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <sighting_file> <signature_file> <result_file>" << std::endl;
         return 1;
     }
 
@@ -164,7 +164,7 @@ int main(int argc, char *argv[]) {
         // Output results to file
         std::ofstream outFile(resultFile);
         if (!outFile.is_open()) {
-            throw std::runtime_error("Unable to open file " + resultFile);
+            throw std::runtime_error("Unable to open file " + resultFile + ".dat");
         }
         outFile << count;
         outFile.close();
