@@ -164,7 +164,7 @@ int main(int argc, char *argv[]) {
         // Output results to file
         std::ofstream outFile(resultFile);
         if (!outFile.is_open()) {
-            throw std::runtime_error("Unable to open file " + resultFile + ".dat");
+            throw std::runtime_error("cannot to open file " + resultFile + ".dat");
         }
         outFile << count;
         outFile.close();
