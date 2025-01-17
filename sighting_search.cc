@@ -119,7 +119,7 @@ bool binarySearch(const std::vector<Sighting> &sightings, int signature) {
 
 int main(int argc, char *argv[]) {
     if (argc < 3) {
-        std::cerr << "Usage: " << argv[0] << " <sighting_file> <signature_file> <result_file>" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <sighting_file.dat> <signature_file.dat> <result_file.dat>" << std::endl;
         return 1;
     }
 
