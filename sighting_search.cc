@@ -118,7 +118,7 @@ bool binarySearch(const std::vector<Sighting> &sightings, int signature) {
 
 
 int main(int argc, char *argv[]) {
-    if (argc < 3) {
+    if (argc != 4) {
         std::cerr << "Usage: " << argv[0] << " <sighting_file.dat> <signature_file.dat> <result_file.dat>" << std::endl;
         return 1;
     }
@@ -128,16 +128,32 @@ int main(int argc, char *argv[]) {
     const std::string resultFile = argv[3];
 
     try {
+        // Validate input file paths
+        std::ifstream testFile;
+
+        testFile.open(sightingFile);
+        if (!testFile.is_open()) {
+            std::cerr << "cannot to open file " << sightingFile << std::endl;
+            return 1;
+        }
+        testFile.close();
+
+        testFile.open(signatureFile);
+        if (!testFile.is_open()) {
+            std::cerr << "cannot to open file " << signatureFile << std::endl;
+            return 1;
+        }
+        testFile.close();
+
         // Read sightings
         std::vector<Sighting> sightings = readFile<Sighting>(sightingFile, parseSighting);
         
         // Read signatures
         std::vector<int> signatures = readFile<int>(signatureFile, parseSignature);
 
-        // Choice search
+        // Choose search method
         char choice;
         Timer timer;
-
         do {
             std::cout << "Choice of search method ([l]inear, [b]inary)? ";
             std::cin >> choice;
@@ -151,7 +167,7 @@ int main(int argc, char *argv[]) {
             std::sort(sightings.begin(), sightings.end());
         }
 
-       // Start search
+        // Start search
         int count = 0;
         timer.Reset();
         for (const auto &signature : signatures) {
@@ -160,11 +176,12 @@ int main(int argc, char *argv[]) {
                 count++;
             }
         }
-        
+
         // Output results to file
-        std::ofstream outFile(resultFile);
+        std::ofstream outFile(resultFile + ".dat");
         if (!outFile.is_open()) {
-            throw std::runtime_error("cannot to open file " + resultFile + ".dat");
+            std::cerr << "cannot to open file " << resultFile + ".dat" << std::endl;
+            return 1;
         }
         outFile << count;
         outFile.close();
@@ -172,6 +189,7 @@ int main(int argc, char *argv[]) {
         // Print CPU time and matches to console
         std::cout << "CPU time: " << timer << std::endl;
         std::cout << "Matches found: " << count << std::endl;
+
     } catch (const std::exception &e) {
         std::cerr << e.what() << std::endl;
         return 1;
@@ -179,5 +197,3 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
-
-
