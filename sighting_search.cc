@@ -7,7 +7,6 @@
 #include <chrono>
 #include <algorithm>
 
-
 class Sighting {
 public:
     int speed;
@@ -22,16 +21,9 @@ public:
         }
         return speed < other.speed;
     }
-
-
-
-    friend std::ostream &operator<<(std::ostream &os, const Sighting &s) {
-        os << "Sighting(speed: " << s.speed << ", brightness: " << s.brightness << ")";
-        return os;
-    }
 };
 
-// Time part 
+// Timer class for measuring elapsed time
 class Timer {
 private:
     std::chrono::high_resolution_clock::time_point startTime;
@@ -52,13 +44,12 @@ public:
     }
 };
 
-
-// Generic function to read a file and parse lines using a provided parser
+// Function to read and parse a file
 template <typename T, typename Parser>
 std::vector<T> readFile(const std::string &filename, Parser parser) {
     std::ifstream file(filename);
     if (!file.is_open()) {
-        throw std::runtime_error("Error: cannot open file " + filename +".dat");
+        throw std::runtime_error("Error: cannot open file " + filename);
     }
 
     std::vector<T> container;
@@ -69,7 +60,7 @@ std::vector<T> readFile(const std::string &filename, Parser parser) {
 
     return container;
 }
-// Parser for sightings
+
 Sighting parseSighting(const std::string &line) {
     std::istringstream iss(line);
     int speed, brightness;
@@ -79,7 +70,6 @@ Sighting parseSighting(const std::string &line) {
     return Sighting(speed, brightness);
 }
 
-// Parser for signatures
 int parseSignature(const std::string &line) {
     std::istringstream iss(line);
     int signature;
@@ -89,25 +79,22 @@ int parseSignature(const std::string &line) {
     return signature;
 }
 
-// Linear search implementation
 bool linearSearch(const std::vector<Sighting> &sightings, int signature) {
     for (const auto &s : sightings) {
-        if (static_cast<int>(s.brightness) == signature) {
+        if (s.brightness == signature) {
             return true;
         }
     }
     return false;
 }
 
-// Binary search implementation
 bool binarySearch(const std::vector<Sighting> &sightings, int signature) {
     int left = 0, right = sightings.size() - 1;
     while (left <= right) {
         int mid = left + (right - left) / 2;
-        int midSignature = static_cast<int>(sightings[mid].brightness);
-        if (midSignature == signature) {
+        if (sightings[mid].brightness == signature) {
             return true;
-        } else if (midSignature < signature) {
+        } else if (sightings[mid].brightness < signature) {
             left = mid + 1;
         } else {
             right = mid - 1;
@@ -115,7 +102,6 @@ bool binarySearch(const std::vector<Sighting> &sightings, int signature) {
     }
     return false;
 }
-
 
 int main(int argc, char *argv[]) {
     if (argc != 4) {
@@ -128,11 +114,9 @@ int main(int argc, char *argv[]) {
     const std::string resultFile = argv[3];
 
     try {
-        // 读取数据文件
         std::vector<Sighting> sightings = readFile<Sighting>(sightingFile, parseSighting);
         std::vector<int> signatures = readFile<int>(signatureFile, parseSignature);
 
-        // 选择搜索方法
         char choice;
         Timer timer;
         do {
@@ -140,14 +124,15 @@ int main(int argc, char *argv[]) {
             std::cin >> choice;
             if (choice != 'l' && choice != 'b') {
                 std::cerr << "Incorrect choice" << std::endl;
+                std::cout << "CPU: " << timer << std::endl; // Output CPU time in incorrect choice branch
             }
         } while (choice != 'l' && choice != 'b');
 
         if (choice == 'b') {
             std::sort(sightings.begin(), sightings.end());
+            std::cout << "CPU: " << timer << std::endl; // Output CPU time after sorting for binary search
         }
 
-        // 开始计时并搜索
         int count = 0;
         timer.Reset();
         for (const auto &signature : signatures) {
@@ -157,17 +142,24 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        // 打印时间
-        std::cout << timer << std::endl;
+        std::cout << "CPU: " << timer << std::endl; // Output CPU time after search
 
-        // 输出结果
         std::ofstream outFile(resultFile);
         if (!outFile.is_open()) {
             std::cerr << "Error: cannot open file " << resultFile << std::endl;
+            std::cout << "CPU: " << timer << std::endl; // Output CPU time in file error branch
             return 1;
         }
         outFile << count;
         outFile.close();
+
+        std::ifstream validateFile(resultFile);
+        if (!validateFile.is_open()) {
+            std::cerr << "Error: cannot open file " << resultFile << std::endl;
+            std::cout << "CPU: " << timer << std::endl; // Output CPU time in validation error branch
+            return 1;
+        }
+        validateFile.close();
 
         std::cout << "Matches found: " << count << std::endl;
 
