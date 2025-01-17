@@ -47,7 +47,7 @@ public:
     }
 
     friend std::ostream &operator<<(std::ostream &os, const Timer &timer) {
-        os << timer.ElapsedMicroseconds() << " microseconds";
+        os << "CPU time: " << timer.ElapsedMicroseconds() << " microseconds";
         return os;
     }
 };
@@ -128,30 +128,11 @@ int main(int argc, char *argv[]) {
     const std::string resultFile = argv[3];
 
     try {
-        // Validate input file paths
-        std::ifstream testFile;
-
-        testFile.open(sightingFile);
-        if (!testFile.is_open()) {
-            std::cerr << "Error: cannot open file " << sightingFile << std::endl;
-            return 1;
-        }
-        testFile.close();
-
-        testFile.open(signatureFile);
-        if (!testFile.is_open()) {
-            std::cerr << "Error: cannot open file " << signatureFile << std::endl;
-            return 1;
-        }
-        testFile.close();
-
-        // Read sightings
+        // 读取数据文件
         std::vector<Sighting> sightings = readFile<Sighting>(sightingFile, parseSighting);
-        
-        // Read signatures
         std::vector<int> signatures = readFile<int>(signatureFile, parseSignature);
 
-        // Choose search method
+        // 选择搜索方法
         char choice;
         Timer timer;
         do {
@@ -162,12 +143,11 @@ int main(int argc, char *argv[]) {
             }
         } while (choice != 'l' && choice != 'b');
 
-        // Sort sightings for binary search
         if (choice == 'b') {
             std::sort(sightings.begin(), sightings.end());
         }
 
-        // Start search
+        // 开始计时并搜索
         int count = 0;
         timer.Reset();
         for (const auto &signature : signatures) {
@@ -177,10 +157,10 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        // Print CPU time before outputting results
-        std::cout << "CPU time: " << timer.ElapsedMicroseconds() << " microseconds" << std::endl;
+        // 打印时间
+        std::cout << timer << std::endl;
 
-        // Output results to file
+        // 输出结果
         std::ofstream outFile(resultFile);
         if (!outFile.is_open()) {
             std::cerr << "Error: cannot open file " << resultFile << std::endl;
@@ -189,15 +169,6 @@ int main(int argc, char *argv[]) {
         outFile << count;
         outFile.close();
 
-        // Re-open and validate result file
-        std::ifstream validateFile(resultFile);
-        if (!validateFile.is_open()) {
-            std::cerr << "Error: cannot open file" << std::endl;
-            return 1;
-        }
-        validateFile.close();
-
-        // Print matches found after writing to file
         std::cout << "Matches found: " << count << std::endl;
 
     } catch (const std::exception &e) {
@@ -207,4 +178,3 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
-
