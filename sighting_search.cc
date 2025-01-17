@@ -124,42 +124,33 @@ int main(int argc, char *argv[]) {
             std::cin >> choice;
             if (choice != 'l' && choice != 'b') {
                 std::cerr << "Incorrect choice" << std::endl;
-                std::cout << "CPU: " << timer << std::endl; // Output CPU time in incorrect choice branch
             }
+            std::cout << "CPU: " << timer << std::endl;
         } while (choice != 'l' && choice != 'b');
 
         if (choice == 'b') {
+            timer.Reset();  // Start timing before sorting
             std::sort(sightings.begin(), sightings.end());
-            std::cout << "CPU: " << timer << std::endl; // Output CPU time after sorting for binary search
+            std::cout << timer << std::endl; // Output CPU time for sorting
         }
 
         int count = 0;
-        timer.Reset();
+        timer.Reset();  // Start timing before search
         for (const auto &signature : signatures) {
             bool found = (choice == 'l') ? linearSearch(sightings, signature) : binarySearch(sightings, signature);
             if (found) {
                 count++;
             }
         }
-
-        std::cout << "CPU: " << timer << std::endl; // Output CPU time after search
+        std::cout << timer << std::endl; // Output CPU time for search
 
         std::ofstream outFile(resultFile);
         if (!outFile.is_open()) {
             std::cerr << "Error: cannot open file " << resultFile << std::endl;
-            std::cout << "CPU: " << timer << std::endl; // Output CPU time in file error branch
             return 1;
         }
         outFile << count;
         outFile.close();
-
-        std::ifstream validateFile(resultFile);
-        if (!validateFile.is_open()) {
-            std::cerr << "Error: cannot open file " << resultFile << std::endl;
-            std::cout << "CPU: " << timer << std::endl; // Output CPU time in validation error branch
-            return 1;
-        }
-        validateFile.close();
 
         std::cout << "Matches found: " << count << std::endl;
 
@@ -170,3 +161,4 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
+
