@@ -176,21 +176,28 @@ int main(int argc, char *argv[]) {
                 count++;
             }
         }
-        
+
         // Print CPU time before outputting results
-        std::cout << "CPU time: " << timer << std::endl;
+        std::cout << "CPU time: " << timer.ElapsedMicroseconds() << " microseconds" << std::endl;
 
         // Output results to file
-        std::ofstream outFile(resultFile + ".dat");
+        std::ofstream outFile(resultFile);
         if (!outFile.is_open()) {
-            std::cerr << "Error: cannot open file " << resultFile + ".dat" << std::endl;
+            std::cerr << "Error: cannot open file " << resultFile << std::endl;
             return 1;
         }
         outFile << count;
         outFile.close();
 
-        // Print CPU time and matches to console
-        
+        // Re-open and validate result file
+        std::ifstream validateFile(resultFile);
+        if (!validateFile.is_open()) {
+            std::cerr << "Error: cannot open file" << std::endl;
+            return 1;
+        }
+        validateFile.close();
+
+        // Print matches found after writing to file
         std::cout << "Matches found: " << count << std::endl;
 
     } catch (const std::exception &e) {
@@ -200,3 +207,4 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
+
