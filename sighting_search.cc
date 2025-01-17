@@ -58,7 +58,7 @@ template <typename T, typename Parser>
 std::vector<T> readFile(const std::string &filename, Parser parser) {
     std::ifstream file(filename);
     if (!file.is_open()) {
-        throw std::runtime_error("cannot open file " + filename +".dat");
+        throw std::runtime_error("Error: cannot open file " + filename +".dat");
     }
 
     std::vector<T> container;
@@ -133,14 +133,14 @@ int main(int argc, char *argv[]) {
 
         testFile.open(sightingFile);
         if (!testFile.is_open()) {
-            std::cerr << "cannot open file " << sightingFile << std::endl;
+            std::cerr << "Error: cannot open file " << sightingFile << std::endl;
             return 1;
         }
         testFile.close();
 
         testFile.open(signatureFile);
         if (!testFile.is_open()) {
-            std::cerr << "cannot open file " << signatureFile << std::endl;
+            std::cerr << "Error: cannot open file " << signatureFile << std::endl;
             return 1;
         }
         testFile.close();
@@ -176,18 +176,21 @@ int main(int argc, char *argv[]) {
                 count++;
             }
         }
+        
+        // Print CPU time before outputting results
+        std::cout << "CPU time: " << timer << std::endl;
 
         // Output results to file
         std::ofstream outFile(resultFile + ".dat");
         if (!outFile.is_open()) {
-            std::cerr << "cannot open file " << resultFile + ".dat" << std::endl;
+            std::cerr << "Error: cannot open file " << resultFile + ".dat" << std::endl;
             return 1;
         }
         outFile << count;
         outFile.close();
 
         // Print CPU time and matches to console
-        std::cout << "CPU time: " << timer << std::endl;
+        
         std::cout << "Matches found: " << count << std::endl;
 
     } catch (const std::exception &e) {
