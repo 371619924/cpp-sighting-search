@@ -8,15 +8,17 @@
 #include <algorithm>
 #include <cmath>
 
+// Class representing a single sighting
 class Sighting
 {
 public:
-    int speed;
-    int brightness;
+    int speed;       // Speed of the sighting
+    int brightness;  // Brightness of the sighting
 
-    Sighting(int speed, int brightness) : speed(speed), brightness(brightness) {} // Constructor
+    // Constructor to initialize speed and brightness
+    Sighting(int speed, int brightness) : speed(speed), brightness(brightness) {}
 
-    // Overload < operator for sorting
+    // Overload < operator to enable sorting based on brightness, then speed
     bool operator<(const Sighting &other) const
     {
         if (brightness != other.brightness)
@@ -31,20 +33,23 @@ public:
 class Timer
 {
 private:
-    std::chrono::high_resolution_clock::time_point startTime;
+    std::chrono::high_resolution_clock::time_point startTime; // Start time
 
 public:
+    // Resets the timer
     void Reset()
     {
         startTime = std::chrono::high_resolution_clock::now();
     }
 
+    // Calculates elapsed time in microseconds
     double ElapsedMicroseconds() const
     {
         auto endTime = std::chrono::high_resolution_clock::now();
         return std::chrono::duration<double, std::micro>(endTime - startTime).count();
     }
 
+    // Overload << operator to output elapsed time
     friend std::ostream &operator<<(std::ostream &os, const Timer &timer)
     {
         os << "CPU time: " << timer.ElapsedMicroseconds() << " microseconds";
@@ -52,7 +57,9 @@ public:
     }
 };
 
-// Function to read and parse a file
+// Function template to read and parse a file
+// T: Type of object to be parsed
+// Parser: Function to parse each line into a T object
 template <typename T, typename Parser>
 std::vector<T> readFile(const std::string &filename, Parser parser)
 {
@@ -62,7 +69,7 @@ std::vector<T> readFile(const std::string &filename, Parser parser)
         throw std::runtime_error("Error: cannot open file " + filename);
     }
 
-    std::vector<T> container;
+    std::vector<T> container; // Container to store parsed objects
     std::string line;
     while (std::getline(file, line))
     {
@@ -72,18 +79,20 @@ std::vector<T> readFile(const std::string &filename, Parser parser)
     return container;
 }
 
+// Function to calculate signatures from speed and brightness pairs
 std::vector<int> calcSig(const std::vector<std::pair<int, int>> &data)
 {
     std::vector<int> signature;
     for (const auto &pairs : data)
     {
-        // 根据公式计算签名值：⎡S × B / 10⎤
+        // Calculate signature using the given formula
         int sig = static_cast<int>(std::ceil(static_cast<double>(pairs.first * pairs.second) / 10.0));
         signature.push_back(sig);
     }
     return signature;
 }
 
+// Function to parse a line into a Sighting object
 Sighting parseSighting(const std::string &line)
 {
     std::istringstream iss(line);
@@ -95,6 +104,7 @@ Sighting parseSighting(const std::string &line)
     return Sighting(speed, brightness);
 }
 
+// Function to parse a line into an integer signature
 int parseSignature(const std::string &line)
 {
     std::istringstream iss(line);
@@ -106,65 +116,71 @@ int parseSignature(const std::string &line)
     return signature;
 }
 
+// Linear search function to check if a signature exists in the sightings
 bool linearSearch(const std::vector<Sighting> &sightings, int signature)
 {
     for (const auto &s : sightings)
     {
+        // Calculate the signature for each sighting
         int calculatedSignature = static_cast<int>(std::ceil(static_cast<double>(s.speed * s.brightness) / 10.0));
         if (calculatedSignature == signature)
         {
-            return true; // 找到匹配时返回 true
+            return true; // Found match
         }
     }
-    return false; // 没找到时返回 false
+    return false; // No match found
 }
 
+// Binary search function to check if a signature exists in sorted sightings
 bool binarySearch(const std::vector<Sighting> &sightings, int signature) {
     int left = 0, right = sightings.size() - 1;
     while (left <= right) {
         int mid = left + (right - left) / 2;
+        // Calculate the signature for the midpoint
         int calculatedSignature = static_cast<int>(std::ceil(static_cast<double>(sightings[mid].speed * sightings[mid].brightness) / 10.0));
         if (calculatedSignature == signature) {
-            return true;
+            return true; // Found match
         } else if (calculatedSignature < signature) {
-            left = mid + 1;
+            left = mid + 1; // Search right half
         } else {
-            right = mid - 1;
+            right = mid - 1; // Search left half
         }
     }
-    return false;
+    return false; // No match found
 }
-
 
 int main(int argc, char *argv[])
 {
+    // Check for proper command-line arguments
     if (argc != 4)
     {
         std::cerr << "Usage: " << argv[0] << " <sighting_file.dat> <signature_file.dat> <result_file.dat>" << std::endl;
         return 1;
     }
 
+    // Extract file names from arguments
     const std::string sightingFile = argv[1];
     const std::string signatureFile = argv[2];
     const std::string resultFile = argv[3];
 
     try
     {
-        // 读取目击数据
+        // Read sightings from file
         std::vector<Sighting> sightings = readFile<Sighting>(sightingFile, parseSighting);
 
-        // 计算签名值
+        // Convert sightings into pairs of speed and brightness
         std::vector<std::pair<int, int>> sightingPairs;
         for (const auto &sighting : sightings)
         {
             sightingPairs.emplace_back(sighting.speed, sighting.brightness);
         }
+        // Calculate signatures for the sightings
         std::vector<int> calculatedSignatures = calcSig(sightingPairs);
 
-        // 读取输入的签名值
+        // Read signatures from file
         std::vector<int> signatures = readFile<int>(signatureFile, parseSignature);
 
-        // 使用线性或二分搜索
+        // Ask the user to choose a search method
         char choice;
         Timer timer;
         do
@@ -178,9 +194,10 @@ int main(int argc, char *argv[])
             std::cout << "CPU: " << timer << std::endl;
         } while (choice != 'l' && choice != 'b');
 
+        // If binary search is chosen, sort the sightings
         if (choice == 'b')
         {
-            timer.Reset(); // 开始计时
+            timer.Reset(); 
             std::sort(sightings.begin(), sightings.end(), [](const Sighting &a, const Sighting &b)
                       {
         int sigA = static_cast<int>(std::ceil(static_cast<double>(a.speed * a.brightness) / 10.0));
@@ -189,9 +206,9 @@ int main(int argc, char *argv[])
             std::cout << "Sorting CPU time: " << timer << std::endl;
         }
 
-        // 搜索匹配项
+        // Perform the chosen search method and count matches
         int count = 0;
-        timer.Reset(); // 开始计时
+        timer.Reset(); 
         for (const auto &signature : signatures)
         {
             bool found = (choice == 'l') ? linearSearch(sightings, signature) : binarySearch(sightings, signature);
@@ -200,9 +217,9 @@ int main(int argc, char *argv[])
                 count++;
             }
         }
-        std::cout << timer << std::endl; // 输出搜索 CPU 时间
+        std::cout << timer << std::endl; // Output elapsed time
 
-        // 写入结果
+        // Write the result to the output file
         std::ofstream outFile(resultFile);
         if (!outFile.is_open())
         {
@@ -216,6 +233,7 @@ int main(int argc, char *argv[])
     }
     catch (const std::exception &e)
     {
+        // Handle any exceptions that occur
         std::cerr << e.what() << std::endl;
         return 1;
     }
